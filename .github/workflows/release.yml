@@ -7,7 +7,7 @@ permissions:
   contents: write
 
 env:
-  packageName: "net.kanameliser.editor-plus"
+  packageName: "com.nyakomake.udon-3d-pathfinding"
 
 jobs:
   build:
