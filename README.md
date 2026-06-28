@@ -1,45 +1,47 @@
 # Udon 3D Pathfinding
 
-GPU-based 3D pathfinding for VRChat worlds, powered by [Compeito](https://github.com/phi16/Compeito) GPGPU kernels.
+[Compeito](https://github.com/phi16/Compeito) GPGPU カーネルを使用した VRChat ワールド向け GPU ベース 3D 経路探索。
 
-## Features
+[English](README_en.md)
 
-- **GPU wavefront BFS** on a dense 3D voxel grid using Compeito compute shaders
-- **UdonSharp** — fully compatible with VRChat Udon runtime
-- **Any Collider type** — Box, Sphere, Capsule, and Mesh colliders all supported
-- **OverlapBox-based voxel filling** — wall voxels completely cover collider volumes
-- **Path smoothing** — spherecast-based corner cutting along the raw voxel path
-- **Instanced rendering** — `VRCGraphics.DrawMeshInstanced` for walls, path, and markers (no GameObjects created)
-- **Stateless path utilities** — pass `Vector3[]` waypoints directly, no hidden state
-- **Follow target API** — snap-to-path then advance along waypoints, with simple and full overloads
-- **Custom Inspector** — bilingual (EN/JA) help boxes, Scene View grid handles, wall voxel preview, rebuild button, auto material assignment
-- **PC-only** — Quest not supported (Compeito requires GPU compute)
+## 機能
 
-## Requirements
+- **GPU ウェーブフロント BFS** — Compeito コンピュートシェーダーによる密な 3D ボクセルグリッド上の経路探索
+- **UdonSharp 対応** — VRChat Udon ランタイムで完全動作
+- **任意のコライダータイプ** — Box / Sphere / Capsule / Mesh コライダーすべて対応
+- **OverlapBox ベースのボクセル塗り** — 壁ボクセルがコライダー体積を完全に覆う
+- **パススムージング** — SphereCast による角切りで不要なウェイポイントを削除
+- **インスタンス描画** — `VRCGraphics.DrawMeshInstanced` で壁・パス・マーカーを描画（GameObject 生成なし）
+- **ステートレスなパスユーティリティ** — `Vector3[]` ウェイポイントを直接渡す、隠し状態なし
+- **フォローターゲット API** — パス上の最近傍点にスナップ → ウェイポイント沿いに進む、簡易版とフル版あり
+- **カスタムインスペクター** — 日英バイリンガル HelpBox、Scene ビューのグリッドハンドル、壁ボクセルプレビュー、リビルドボタン、マテリアル自動割り当て
+- **PC 専用** — Quest 非対応（Compeito は GPU コンピュートが必要）
 
-| Package | Version |
+## 動作要件
+
+| パッケージ | バージョン |
 |---|---|
 | `com.vrchat.worlds` | >=3.10.3 |
 | `com.imaginantia.compeito` | >=1.0.1 |
 | Unity | 2022.3 |
 
-## Installation
+## インストール
 
-Add this repo as a VPM repository in the VRChat Creator Companion, then install the package:
+VRChat Creator Companion でこのリポジトリを VPM リポジトリとして追加し、パッケージをインストールしてください:
 
 ```
 https://github.com/nyakomechan/Udon-3D-Pathfinding.git
 ```
 
-Or manually place this folder under your project's `Packages/` directory.
+または、このフォルダをプロジェクトの `Packages/` ディレクトリ以下に手動で配置してください。
 
-## Quick Start
+## クイックスタート
 
-1. Add `UdonPathfindingManager` to a GameObject in your scene
-2. Assign wall `Collider[]` in the Inspector (any collider type, any rotation)
-3. Set grid size (`gridSizeX/Y/Z`), `cellSize`, and `gridOrigin`
-4. The `PathfindCompeito` material is auto-assigned when the Inspector is opened
-5. Call `RequestPath` from any UdonSharpBehaviour:
+1. シーン内の GameObject に `UdonPathfindingManager` を追加
+2. インスペクターで壁となる `Collider[]` を設定（任意のコライダータイプ・回転に対応）
+3. グリッドサイズ（`gridSizeX/Y/Z`）、`cellSize`、`gridOrigin` を設定
+4. `PathfindCompeito` マテリアルはインスペクターを開いたときに自動で割り当てられます
+5. 任意の UdonSharpBehaviour から `RequestPath` を呼び出す:
 
 ```csharp
 public UdonPathfindingManager manager;
@@ -52,73 +54,73 @@ void Start()
 public void OnPathFound()
 {
     Vector3[] wps = manager.waypoints;
-    // Use the path...
+    // パスを使用...
 }
 ```
 
-## API Reference
+## API リファレンス
 
-### Path Request
+### パスリクエスト
 
-| Method | Description |
+| メソッド | 説明 |
 |---|---|
-| `RequestPath(Vector3 start, Vector3 goal)` | Queue a path request using default receiver/events |
-| `RequestPath(Vector3 start, Vector3 goal, UdonSharpBehaviour receiver)` | Queue with custom receiver |
-| `RequestPath(Vector3 start, Vector3 goal, UdonSharpBehaviour receiver, string foundEvent, string failedEvent)` | Queue with custom receiver and event names |
+| `RequestPath(Vector3 start, Vector3 goal)` | デフォルトのレシーバー/イベントでパス要求をキューに追加 |
+| `RequestPath(Vector3 start, Vector3 goal, UdonSharpBehaviour receiver)` | カスタムレシーバーを指定してキューに追加 |
+| `RequestPath(Vector3 start, Vector3 goal, UdonSharpBehaviour receiver, string foundEvent, string failedEvent)` | カスタムレシーバーとイベント名を指定してキューに追加 |
 
-Results are delivered via `SendCustomEvent` to the receiver. After `OnPathFound`, read `manager.waypoints` (`Vector3[]`).
+結果はレシーバーへ `SendCustomEvent` で通知されます。`OnPathFound` 後に `manager.waypoints`（`Vector3[]`）を読み取ってください。
 
-### Path Result Fields
+### パス結果フィールド
 
-| Field | Type | Description |
+| フィールド | 型 | 説明 |
 |---|---|---|
-| `waypoints` | `Vector3[]` | Smoothed path waypoints |
-| `pathFound` | `bool` | Whether the last search succeeded |
-| `pathError` | `string` | Error message if failed |
-| `isBusy` | `bool` | Whether a search is in progress |
-| `startWorld` / `goalWorld` | `Vector3` | Actual start/goal positions used |
-| `searchIterationCount` | `int` | Total wavefront iterations |
-| `searchFrameCount` | `int` | Total frames elapsed |
+| `waypoints` | `Vector3[]` | スムージング済みのパスウェイポイント |
+| `pathFound` | `bool` | 最後の探索が成功したか |
+| `pathError` | `string` | 失敗時のエラーメッセージ |
+| `isBusy` | `bool` | 探索中かどうか |
+| `startWorld` / `goalWorld` | `Vector3` | 実際に使用された開始/目標位置 |
+| `searchIterationCount` | `int` | ウェーブフロントの総反復回数 |
+| `searchFrameCount` | `int` | 経過フレーム数 |
 
-### Path Utility API (stateless — pass `Vector3[] wps`)
+### パスユーティリティ API（ステートレス — `Vector3[] wps` を引数に渡す）
 
-| Method | Returns | Description |
+| メソッド | 戻り値 | 説明 |
 |---|---|---|
-| `GetPathLength(Vector3[] wps)` | `float` | Total distance across all segments |
-| `GetClosestPointOnPath(Vector3[] wps, Vector3 pos)` | `Vector3` | Closest point on the path to `pos` |
-| `GetClosestWaypointIndex(Vector3[] wps, Vector3 pos)` | `int` | Index of nearest waypoint to `pos` |
-| `ResamplePath(Vector3[] wps, float spacing)` | `Vector3[]` | Resampled path at equal intervals |
+| `GetPathLength(Vector3[] wps)` | `float` | 全セグメントの距離合計 |
+| `GetClosestPointOnPath(Vector3[] wps, Vector3 pos)` | `Vector3` | パス上の `pos` に最も近い点 |
+| `GetClosestWaypointIndex(Vector3[] wps, Vector3 pos)` | `int` | `pos` に最も近いウェイポイントのインデックス |
+| `ResamplePath(Vector3[] wps, float spacing)` | `Vector3[]` | 等間隔にリサンプリングしたパス |
 
-### Waypoint Progress API (stateless — pass `int index`)
+### ウェイポイント進行 API（ステートレス — `int index` を引数に渡す）
 
-| Method | Returns | Description |
+| メソッド | 戻り値 | 説明 |
 |---|---|---|
-| `GetCurrentWaypoint(Vector3[] wps, int index)` | `Vector3` | Waypoint at `index` |
-| `GetRemainingDistance(Vector3[] wps, int index)` | `float` | Distance from `index` to end |
-| `GetProgress(Vector3[] wps, int index)` | `float` | Progress `0..1` (distance-based) |
-| `AdvanceWaypoint(int index, int count)` | `int` | Next index, or `-1` at end |
-| `ResetWaypointProgress(int count)` | `int` | Initial target index (`1` if `count > 1`, else `0`) |
+| `GetCurrentWaypoint(Vector3[] wps, int index)` | `Vector3` | `index` 番目のウェイポイント |
+| `GetRemainingDistance(Vector3[] wps, int index)` | `float` | `index` から終点までの距離 |
+| `GetProgress(Vector3[] wps, int index)` | `float` | 進行度 `0..1`（距離ベース） |
+| `AdvanceWaypoint(int index, int count)` | `int` | 次のインデックス、終点で `-1` |
+| `ResetWaypointProgress(int count)` | `int` | 初期目標インデックス（`count > 1` なら `1`、それ以外 `0`） |
 
-### Follow Target API
+### フォローターゲット API
 
-**Simple (stateless, no index management):**
+**簡易版（ステートレス、インデックス管理不要）:**
 
 ```csharp
 Vector3 target = manager.GetFollowTarget(wps, transform.position);
-// Move toward target each frame
+// 毎フレーム target に向かって移動
 ```
 
-**Simple with goal check:**
+**簡易版 + ゴール判定:**
 
 ```csharp
 Vector3 target = manager.GetFollowTarget(wps, transform.position, out bool reachedGoal);
-if (reachedGoal) { /* arrived */ }
+if (reachedGoal) { /* 到達 */ }
 ```
 
-**Full (with index tracking for O(1) per-frame):**
+**フル版（インデックス追跡あり、O(1) / フレーム）:**
 
 ```csharp
-int followIndex = -1; // -1 = snap phase
+int followIndex = -1; // -1 = スナップ段階
 
 void Update()
 {
@@ -127,60 +129,60 @@ void Update()
         followIndex, snapDistance, reachDistance,
         out followIndex, out bool reachedGoal);
 
-    if (reachedGoal) { /* arrived */ }
-    // Move toward target...
+    if (reachedGoal) { /* 到達 */ }
+    // target に向かって移動...
 }
 ```
 
-| `currentIndex` | Phase | Behavior |
+| `currentIndex` | 段階 | 動作 |
 |---|---|---|
-| `-1` | Snap | Move toward closest point on path |
-| `>= 0` | Follow | Move toward `wps[currentIndex]`, advance on reach |
+| `-1` | スナップ | パス上の最近傍点へ移動 |
+| `>= 0` | 追跡 | `wps[currentIndex]` へ移動、到達で次へ進む |
 
-### Grid / Voxel API
+### グリッド / ボクセル API
 
-| Method | Returns | Description |
+| メソッド | 戻り値 | 説明 |
 |---|---|---|
-| `WorldToLeaf(Vector3 worldPos)` | `int` | Leaf index at world position, or `-1` |
-| `LeafToWorld(int leafIdx, bool center)` | `Vector3` | World position of a leaf |
-| `FindNearestEmptyLeaf(Vector3 worldPos)` | `int` | Nearest walkable leaf to `worldPos` |
-| `Rebuild()` | `void` | Rebuild grid from colliders and reinitialize GPU |
-| `GetCellSize()` | `float` | Voxel cell size |
-| `GetGridOrigin()` | `Vector3` | Grid origin |
-| `GetGridSizeX/Y/Z()` | `int` | Grid dimensions |
+| `WorldToLeaf(Vector3 worldPos)` | `int` | ワールド位置のリーフインデックス、または `-1` |
+| `LeafToWorld(int leafIdx, bool center)` | `Vector3` | リーフのワールド位置 |
+| `FindNearestEmptyLeaf(Vector3 worldPos)` | `int` | `worldPos` に最も近い歩行可能リーフ |
+| `Rebuild()` | `void` | コライダーからグリッドを再構築し GPU を再初期化 |
+| `GetCellSize()` | `float` | ボクセルセルサイズ |
+| `GetGridOrigin()` | `Vector3` | グリッド原点 |
+| `GetGridSizeX/Y/Z()` | `int` | グリッド寸法 |
 
-## Components
+## コンポーネント
 
-| Component | Type | Description |
+| コンポーネント | 型 | 説明 |
 |---|---|---|
-| `UdonPathfindingManager` | UdonSharpBehaviour | Core pathfinding engine (GPU BFS, voxel grid, path reconstruction) |
-| `UdonPathfindDrawer` | UdonSharpBehaviour | Instanced mesh rendering of walls/path/markers via `VRCGraphics.DrawMeshInstanced` |
-| `UdonPathfindVisualizerMono` | MonoBehaviour | Debug visualizer for Editor mode (not for VRChat runtime) |
-| `UdonPathfindingManagerEditor` | Custom Editor | Inspector with bilingual help, Scene handles, wall preview, rebuild button |
+| `UdonPathfindingManager` | UdonSharpBehaviour | 経路探索エンジン本体（GPU BFS、ボクセルグリッド、パス再構築） |
+| `UdonPathfindDrawer` | UdonSharpBehaviour | `VRCGraphics.DrawMeshInstanced` による壁・パス・マーカーのインスタンス描画 |
+| `UdonPathfindVisualizerMono` | MonoBehaviour | Editor モード用デバッグビジュアライザ（VRChat ランタイム非対象） |
+| `UdonPathfindingManagerEditor` | Custom Editor | バイリンガル HelpBox、Scene ハンドル、壁プレビュー、リビルドボタン付きインスペクター |
 
-## How It Works
+## 仕組み
 
-1. **Voxelization** — Wall colliders are sampled into a dense 3D byte grid using `Physics.OverlapBoxNonAlloc` per voxel. Wall voxels completely cover collider volumes.
-2. **Leaf mapping** — Walkable voxels are mapped to leaf indices. 6-directional neighbor connectivity is precomputed.
-3. **GPU BFS** — A wavefront expansion shader (Compeito) propagates from the start node across the neighbor graph stored in textures. A goal-detection pass checks for arrival each iteration.
-4. **Readback** — `VRCAsyncGPUReadback` retrieves the parent-pointer texture. Path is reconstructed by backtracking from goal to start.
-5. **Smoothing** — `Physics.SphereCast` removes unnecessary waypoints by cutting corners where no wall blocks the direct line.
+1. **ボクセル化** — 壁コライダーを `Physics.OverlapBoxNonAlloc` で密な 3D バイトグリッドにサンプリング。壁ボクセルがコライダー体積を完全に覆う。
+2. **リーフマッピング** — 歩行可能ボクセルをリーフインデックスにマッピング。6 方向の隣接接続を事前計算。
+3. **GPU BFS** — ウェーブフロント展開シェーダー（Compeito）が、テクスチャに格納された隣接グラフ上で開始ノードから伝播。各反復でゴール検出パスが到達をチェック。
+4. **リードバック** — `VRCAsyncGPUReadback` が親ポインタテクスチャを取得。ゴールから開始点まで逆追跡でパスを再構築。
+5. **スムージング** — `Physics.SphereCast` で壁が遮らない角を切り、不要なウェイポイントを削除。
 
-## Limitations
+## 制限事項
 
-- **PC-only** — Compeito uses GPU compute not available on Quest
-- **Grid size** — Limited by max texture dimension; `gridSizeX * gridSizeY * gridSizeZ` should stay within reasonable bounds (tested up to 32^3 = 32768 voxels)
-- **Wall layer** — Auto-detected from `wallColliders` gameObject layers; used for `SphereCast` smoothing only
-- **Single path at a time** — Requests are queued and processed serially
+- **PC 専用** — Compeito は Quest で利用不可の GPU コンピュートを使用
+- **グリッドサイズ** — 最大テクスチャ寸法に制限。`gridSizeX * gridSizeY * gridSizeZ` は妥当な範囲に収めること（32^3 = 32768 ボクセルまでテスト済み）
+- **壁レイヤー** — `wallColliders` のレイヤーから自動検出。`SphereCast` スムージングでのみ使用
+- **同時に1パスのみ** — リクエストはキューに入り順次処理される
 
-## Samples
+## サンプル
 
-Import the **Demo Scene** sample via Unity Package Manager to see a working example with follow movement.
+Unity Package Manager から **Demo Scene** サンプルをインポートすると、フォロ移動の動作例を確認できます。
 
-## License
+## ライセンス
 
 MIT
 
-## Author
+## 作者
 
 nyakomake — https://github.com/nyakomechan
