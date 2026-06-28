@@ -1,5 +1,6 @@
 {
     "name": "UdonPathfinding.Udon",
+    "rootNamespace": "com.nyakomake",
     "references": [
         "UdonSharp.Runtime",
         "VRC.SDKBase",

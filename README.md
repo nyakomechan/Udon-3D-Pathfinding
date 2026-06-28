@@ -43,8 +43,8 @@ https://github.com/nyakomechan/Udon-3D-Pathfinding.git
 ## クイックスタート
 
 1. シーン内の GameObject に `UdonPathfindingManager` を追加する
-2. インスペクターで壁となる `Collider[]` を設定する（任意のコライダータイプ、回転に対応）
-3. グリッドサイズ（`gridSizeX/Y/Z`）、`cellSize`、`gridOrigin` を設定する
+2. インスペクターで壁となるWall Collidersを設定する（任意のコライダータイプ、回転に対応）
+3. インスペクターでEdit Grid Rangeボタンを押して、表示されるハンドルで経路探索する範囲を設定する
 4. 任意の UdonSharpBehaviour から `RequestPath` を呼び出す
 5. 経路探索が完了すると `OnPathFound()` が呼び出される
 6.  `OnPathFound()` 内で `UdonPathfindingManager.waypoints` からウェイポイントを取り出す

@@ -1,5 +1,6 @@
 {
     "name": "UdonPathfinding.Editor",
+    "rootNamespace": "com.nyakomake",
     "references": [
         "UdonPathfinding.Udon",
         "UdonSharp.Runtime"

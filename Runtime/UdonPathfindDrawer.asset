@@ -21,7 +21,7 @@ MonoBehaviour:
   compiledVersion: 2
   behaviourSyncMode: 1
   hasInteractEvent: 0
-  scriptID: -3923993133617870114
+  scriptID: -7719849697177523365
   serializationData:
     SerializedFormat: 2
     SerializedBytes: 
@@ -62,7 +62,7 @@ MonoBehaviour:
       Data: 3|System.RuntimeType, mscorlib
     - Name: 
       Entry: 1
-      Data: UdonPathfindingManager, UdonPathfinding.Udon
+      Data: nyakomake.udon3dpathfinding.UdonPathfindingManager, UdonPathfinding.Udon
     - Name: 
       Entry: 8
       Data: 
