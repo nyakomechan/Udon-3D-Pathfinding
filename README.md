@@ -1,6 +1,6 @@
 # Udon 3D Pathfinding
 
-[Compeito](https://github.com/phi16/Compeito) の GPGPU カーネルを使った VRChat ワールド向け 3D 経路探索パッケージ。
+[Compeito](https://github.com/phi16/Compeito) の GPGPU カーネルを使った VRChat ワールド向け 3D 経路探索パッケージ
 
 [English](README_en.md)
 
@@ -8,21 +8,15 @@
 
 VRChat の Udon ランタイム上で GPU ベースの幅優先探索（BFS）を実行し、3D ボクセルグリッド上の経路を求める。
 壁のコライダーをボクセル化し、Compeito のコンピュートシェーダーでウェーブフロント展開を行う。
-得られた経路は SphereCast によるスムージングを経て、`Vector3[]` のウェイポイント配列として取り出せる。
-
-PC 専用である。
-Compeito が GPU コンピュートを使用するため、Quest では動作しない。
+得られた経路はスムージングを経て、`Vector3[]` のウェイポイント配列として取り出せる。
+取り出したウェイポイント配列を利用するためのユーティリティAPI群も含む。
 
 ## 機能
 
-- **密な 3D ボクセルグリッド上の GPU ウェーブフロント BFS**：Compeito コンピュートシェーダーで実行
 - **任意のコライダータイプに対応**：Box、Sphere、Capsule、Mesh コライダーいずれも使用可能
-- **OverlapBox によるボクセル塗り**：壁ボクセルがコライダー体積を完全に覆う
-- **SphereCast によるパススムージング**：角を切り、不要なウェイポイントを削除
-- **インスタンス描画**：`VRCGraphics.DrawMeshInstanced` で壁、パス、マーカーを描画（GameObject を生成しない）
-- **ステートレスなパスユーティリティ**：`Vector3[]` ウェイポイントを引数に渡す形式で、隠し状態を持たない
-- **フォローターゲット API**：パス上の最近傍点にスナップしてからウェイポイント沿いに進む。簡易版とフル版がある
-- **カスタムインスペクター**：日英バイリンガル HelpBox、Scene ビューのグリッドハンドル、壁ボクセルプレビュー、リビルドボタン、マテリアル自動割り当て
+- **パススムージング**：ボクセルベースで経路探索後、実コライダーベースでパススムージングを実施し不要なウェイポイントを削除
+- **カスタムインスペクター**：Scene ビューで範囲設定、壁ボクセルプレビュー
+- **フレーム分割処理**：負荷に応じてフレームごとに実行するイテレーション数を指定可能
 
 ## 動作要件
 
@@ -34,21 +28,26 @@ Compeito が GPU コンピュートを使用するため、Quest では動作し
 
 ## インストール
 
-VRChat Creator Companion でこのリポジトリを VPM リポジトリとして追加し、パッケージをインストールする。
+VRChat Creator Companion でこのリポジトリを VPM リポジトリとして追加し、パッケージをインストールしてください。
+
+```
+https://nyakomechan.github.io/vpm-repository/
+```
 
 ```
 https://github.com/nyakomechan/Udon-3D-Pathfinding.git
 ```
 
-手動で導入する場合は、このフォルダをプロジェクトの `Packages/` ディレクトリ以下に配置する。
+手動で導入する場合は、このフォルダをプロジェクトの `Packages/` ディレクトリ以下に配置してください。
 
 ## クイックスタート
 
 1. シーン内の GameObject に `UdonPathfindingManager` を追加する
 2. インスペクターで壁となる `Collider[]` を設定する（任意のコライダータイプ、回転に対応）
 3. グリッドサイズ（`gridSizeX/Y/Z`）、`cellSize`、`gridOrigin` を設定する
-4. `PathfindCompeito` マテリアルはインスペクターを開いた時点で自動的に割り当てられる
-5. 任意の UdonSharpBehaviour から `RequestPath` を呼び出す
+4. 任意の UdonSharpBehaviour から `RequestPath` を呼び出す
+5. 経路探索が完了すると `OnPathFound()` が呼び出される
+6.  `OnPathFound()` 内で `UdonPathfindingManager.waypoints` からウェイポイントを取り出す
 
 ```csharp
 public UdonPathfindingManager manager;
@@ -92,7 +91,7 @@ public void OnPathFound()
 
 ### パスユーティリティ API
 
-`Vector3[] wps` を引数に渡すステートレスなメソッド群。
+`Vector3[] wps` (waypoints)を引数に渡すステートレスなメソッド群。
 
 | メソッド | 戻り値 | 説明 |
 |---|---|---|
@@ -116,16 +115,21 @@ public void OnPathFound()
 
 ### フォローターゲット API
 
-パス上の最近傍点にスナップしてからウェイポイント沿いにゴールへ進むためのAPI。
+パス上の最近傍点に移動してからウェイポイント沿いにゴールへ進むためのAPI。
+ウェイポイント配列と現在位置から次のウェイポイントの座標を返す。
 
 簡易版（ステートレス、インデックス管理不要）:
 
 ```csharp
+// ウェイポイント配列wpsと現在位置transform.positionから次のウェイポイントの座標targetを得る
 Vector3 target = manager.GetFollowTarget(wps, transform.position);
 // 毎フレーム target に向かって移動する
+Vector3 dir = target - transform.position;
+Vector3 speed = 0.1f;
+transform.position = transform.position + dir.normalized + speed * Time.deltaTime;
 ```
 
-簡易版にゴール判定を付けた版:
+ゴール判定:
 
 ```csharp
 Vector3 target = manager.GetFollowTarget(wps, transform.position, out bool reachedGoal);
@@ -187,14 +191,13 @@ void Update()
 
 ## 制限事項
 
-- **PC 専用**：Compeito は Quest で利用不可の GPU コンピュートを使用する
 - **グリッドサイズ**：最大テクスチャ寸法に制限がある。`gridSizeX * gridSizeY * gridSizeZ` は妥当な範囲に収めること（32^3 = 32768 ボクセルまでテスト済み）
 - **壁レイヤー**：`wallColliders` のレイヤーから自動検出する。`SphereCast` スムージングでのみ使用する
 - **同時に1パスのみ**：リクエストはキューに入り順次処理される
 
 ## サンプル
 
-Unity Package Manager から **Demo Scene** サンプルをインポートすると、フォロ移動の動作例を確認できる。
+Samples~/Demo以下　フォロー移動の動作例
 
 ## ライセンス
 
