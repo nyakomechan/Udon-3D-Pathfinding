@@ -487,8 +487,8 @@ Transform:
   m_GameObject: {fileID: 1124647513}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 10.2, y: -2.6409428, z: -6.7622566}
-  m_LocalScale: {x: 40.672207, y: 17.357214, z: 4.3675046}
+  m_LocalPosition: {x: 10.2, y: -2.6409428, z: -5.85}
+  m_LocalScale: {x: 40.672207, y: 17.357214, z: 2.9940116}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 659735173}
@@ -544,7 +544,7 @@ MonoBehaviour:
   gridSizeZ: 40
   cellSize: 1
   gridOrigin: {x: 0, y: 0, z: -8}
-  heightFactor: 0.2
+  heightFactor: 1
   itersPerFrame: 16
   maxIterations: 100
   isBusy: 0
@@ -911,7 +911,7 @@ MonoBehaviour:
   pathMaterial: {fileID: 2100000, guid: c6e1282ff9c1e6f499e9946ac2c15a94, type: 2}
   startMaterial: {fileID: 2100000, guid: 0c175cd24748341449bd6524ddac95a6, type: 2}
   goalMaterial: {fileID: 2100000, guid: a58e56c64311f9149a60f45fd17452f2, type: 2}
-  wallScale: 0.95
+  wallScale: 0.5
   pathScale: 0.3
   pathSpacing: 0.5
   markerScale: 0.5

@@ -28,9 +28,11 @@ public class UdonPathfindingManager : UdonSharpBehaviour
     public string pathError;
     [HideInInspector]
     public Vector3[] waypoints;
-
+    [HideInInspector]
     public UdonSharpBehaviour resultReceiver;
+    [HideInInspector]
     public string foundEventName = "OnPathFound";
+    [HideInInspector]
     public string failedEventName = "OnPathFailed";
 
     private const int STATE_IDLE = 0;

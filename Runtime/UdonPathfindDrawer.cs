@@ -127,7 +127,7 @@ public class UdonPathfindDrawer : UdonSharpBehaviour
 
         wallMatrices = new Matrix4x4[count];
         int idx = 0;
-        Vector3 scaleVec = Vector3.one * cs * wallScale;
+        Vector3 scaleVec = Vector3.one * cs * wallScale*0.5f;
         for (int z = 0; z < gsZ; z++)
         {
             for (int y = 0; y < gsY; y++)

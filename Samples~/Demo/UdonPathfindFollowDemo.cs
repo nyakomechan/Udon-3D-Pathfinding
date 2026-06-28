@@ -25,7 +25,6 @@ public class UdonPathfindFollowDemo : UdonSharpBehaviour
             Debug.LogWarning("[UdonPathfindFollowDemo] manager is not assigned");
             return;
         }
-        manager.resultReceiver = this;
     }
 
     void Update()
